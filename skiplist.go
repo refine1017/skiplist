@@ -1,7 +1,6 @@
 package skiplist
 
 import (
-	"fmt"
 	"math/rand"
 	"time"
 )
@@ -45,14 +44,17 @@ func NewSkipList() *SkipList {
 	return sl
 }
 
+// 获取Level
 func (s *SkipList) Level() int {
 	return s.level
 }
 
+// 获取排行榜数据数量
 func (s *SkipList) Length() int {
 	return len(s.node_map)
 }
 
+// 根据Key设置数据
 func (s *SkipList) Set(key interface{}, data interface{}) bool {
 	if s.Delete(key) == false {
 		return false
@@ -118,6 +120,7 @@ func (s *SkipList) Set(key interface{}, data interface{}) bool {
 	return true
 }
 
+// 根据Key获取数据
 func (s *SkipList) Get(key interface{}) interface{} {
 	if node := s.getNode(key); node != nil {
 		return node.data
@@ -126,6 +129,7 @@ func (s *SkipList) Get(key interface{}) interface{} {
 	return nil
 }
 
+// 根据Key删除数据
 func (s *SkipList) Delete(key interface{}) bool {
 	if node := s.getNode(key); node != nil {
 		return s.deleteByNode(node)
@@ -134,6 +138,12 @@ func (s *SkipList) Delete(key interface{}) bool {
 	return true
 }
 
+// 根据Key判断是否存在
+func (s *SkipList) Exist(key interface{}) bool {
+	return s.Get(key) != nil
+}
+
+// 根据Key获取排名
 func (s *SkipList) GetRank(key interface{}) int {
 	if node := s.getNode(key); node != nil {
 		return s.GetRankByData(node.data)
@@ -142,6 +152,7 @@ func (s *SkipList) GetRank(key interface{}) int {
 	return 0
 }
 
+// 根据数据获取排名
 func (s *SkipList) GetRankByData(data interface{}) int {
 	var node *skipListNode
 	var rank int = 1
@@ -162,38 +173,7 @@ func (s *SkipList) GetRankByData(data interface{}) int {
 	return 0
 }
 
-func (s *SkipList) Exist(key interface{}) bool {
-	return s.Get(key) != nil
-}
-
-func (s *SkipList) Top(number int) []interface{} {
-	var top_list = make([]interface{}, number)
-	var index int
-
-	node := s.header.levels[0].forward
-	for node != nil && index < number {
-		top_list[index] = node.data
-		index++
-		node = node.levels[0].forward
-	}
-
-	return top_list
-}
-
-func (s *SkipList) Bottom(number int) []interface{} {
-	var bottom_list = make([]interface{}, number)
-	var index int
-
-	node := s.tail
-	for node != nil && index < number {
-		bottom_list[index] = node.data
-		index++
-		node = node.backward
-	}
-
-	return bottom_list
-}
-
+// 根据排名获取数据
 func (s *SkipList) GetDataByRank(rank int) interface{} {
 	if rank == 0 || rank > s.Length() {
 		return nil
@@ -217,6 +197,37 @@ func (s *SkipList) GetDataByRank(rank int) interface{} {
 	return nil
 }
 
+// 获取排名前多少名数据
+func (s *SkipList) Top(number int) []interface{} {
+	var top_list = make([]interface{}, number)
+	var index int
+
+	node := s.header.levels[0].forward
+	for node != nil && index < number {
+		top_list[index] = node.data
+		index++
+		node = node.levels[0].forward
+	}
+
+	return top_list
+}
+
+// 获取排名后多少名数据
+func (s *SkipList) Bottom(number int) []interface{} {
+	var bottom_list = make([]interface{}, number)
+	var index int
+
+	node := s.tail
+	for node != nil && index < number {
+		bottom_list[index] = node.data
+		index++
+		node = node.backward
+	}
+
+	return bottom_list
+}
+
+// 清空排行榜
 func (s *SkipList) Clear() {
 	s.header = newSkipListNode(SKIPLIST_MAXLEVEL, 0, 0)
 	s.tail = nil
@@ -235,6 +246,7 @@ func newSkipListNode(level int, key interface{}, data interface{}) *skipListNode
 	return sn
 }
 
+// 随机节点高度
 func randomLevel() int {
 	var level int = 1
 	for {
@@ -253,6 +265,7 @@ func randomLevel() int {
 	return level
 }
 
+// 根据数据删除节点
 func (s *SkipList) deleteByData(data interface{}) bool {
 	var update = make([]*skipListNode, SKIPLIST_MAXLEVEL)
 	var node *skipListNode
@@ -271,10 +284,10 @@ func (s *SkipList) deleteByData(data interface{}) bool {
 		return true
 	}
 
-	fmt.Printf("SkipList.deleteByData fail, data = %+v, node.key=%v, node.data=%+v\n", data, node.key, node.data)
 	return false
 }
 
+// 根据节点删除
 func (s *SkipList) deleteByNode(node *skipListNode) bool {
 	if node == nil {
 		return true
@@ -283,6 +296,7 @@ func (s *SkipList) deleteByNode(node *skipListNode) bool {
 	return s.deleteByData(node.data)
 }
 
+// 删除节点
 func (s *SkipList) deleteNode(x *skipListNode, update []*skipListNode) {
 	for i := 0; i < s.level; i++ {
 		if update[i].levels[i].forward == x {
@@ -306,6 +320,7 @@ func (s *SkipList) deleteNode(x *skipListNode, update []*skipListNode) {
 	delete(s.node_map, x.key)
 }
 
+// 获取节点
 func (s *SkipList) getNode(key interface{}) *skipListNode {
 	return s.node_map[key]
 }

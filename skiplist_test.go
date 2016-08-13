@@ -119,4 +119,11 @@ func TestAll(t *testing.T) {
 	checkExist(t, s, "k1", false)
 
 	checkGet(t, s, "k1", nil)
+
+	s.Clear()
+
+	checkLevel(t, s, 1)
+	checkLength(t, s, 0)
+
+	checkExist(t, s, "k2", false)
 }
