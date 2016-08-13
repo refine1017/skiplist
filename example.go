@@ -1,9 +1,8 @@
-package main
+package skiplist
 
 import (
 	"fmt"
 	"math/rand"
-	"skiplist"
 )
 
 const PLAYER_LENGTH = 3000
@@ -33,7 +32,7 @@ func heroRealLadderLess(d1 interface{}, d2 interface{}) bool {
 	return h1.entry > h2.entry
 }
 
-func randomAdd(heroRealLadder *skiplist.SkipList, owner, entry uint32) uint64 {
+func randomAdd(heroRealLadder *SkipList, owner, entry uint32) uint64 {
 
 	ability := uint32(rand.Int31n(100000))
 
@@ -60,7 +59,7 @@ func randomAdd(heroRealLadder *skiplist.SkipList, owner, entry uint32) uint64 {
 	return key
 }
 
-func checkLadder(heroRealLadder *skiplist.SkipList) error {
+func checkLadder(heroRealLadder *SkipList) error {
 	var ladder_length = PLAYER_LENGTH * len(hero_list)
 
 	if heroRealLadder.Length() != ladder_length {
@@ -96,7 +95,7 @@ func checkLadder(heroRealLadder *skiplist.SkipList) error {
 	return nil
 }
 
-func checkLengthError(heroRealLadder *skiplist.SkipList) error {
+func checkLengthError(heroRealLadder *SkipList) error {
 	var key_map = make(map[uint64]*LadderHero)
 
 	elements := heroRealLadder.Top(heroRealLadder.Length())
@@ -129,7 +128,7 @@ func checkLengthError(heroRealLadder *skiplist.SkipList) error {
 	return fmt.Errorf("checkLengthError, ladder length = %v", heroRealLadder.Length())
 }
 
-func randomChange(heroRealLadder *skiplist.SkipList) {
+func randomChange(heroRealLadder *SkipList) {
 	for i := 0; i < 10000; i++ {
 		owner := uint32(rand.Int31n(PLAYER_LENGTH)) + 1
 		hero_index := uint32(rand.Int31n(int32(len(hero_list)) - 1))
@@ -138,7 +137,7 @@ func randomChange(heroRealLadder *skiplist.SkipList) {
 	}
 }
 
-func printTop(heroRealLadder *skiplist.SkipList, num int) error {
+func printTop(heroRealLadder *SkipList, num int) error {
 	fmt.Printf("printTop ###########[%v]##########\n", num)
 
 	elements := heroRealLadder.Top(num)
@@ -159,7 +158,7 @@ func printTop(heroRealLadder *skiplist.SkipList, num int) error {
 }
 
 func main() {
-	var heroRealLadder = skiplist.NewSkipList()
+	var heroRealLadder = NewSkipList()
 	heroRealLadder.Less = heroRealLadderLess
 
 	for i := 1; i <= PLAYER_LENGTH; i++ {
