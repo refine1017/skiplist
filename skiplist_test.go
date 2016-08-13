@@ -94,15 +94,21 @@ func TestAll(t *testing.T) {
 	s.Set("k2", v2)
 	v3 := &LadderData{1, 2}
 	s.Set("k1", v3)
-	checkLength(t, s, 2)
-	checkRank(t, s, "k1", 1)
-	checkRank(t, s, "k2", 2)
+	v4 := &LadderData{4, 4}
+	s.Set("k4", v4)
 
-	checkGetDataByRank(t, s, 1, v3)
-	checkGetDataByRank(t, s, 2, v2)
+	checkLength(t, s, 3)
+	checkRank(t, s, "k1", 2)
+	checkRank(t, s, "k2", 3)
+	checkRank(t, s, "k4", 1)
+
+	checkGetDataByRank(t, s, 1, v4)
+	checkGetDataByRank(t, s, 2, v3)
+	checkGetDataByRank(t, s, 3, v2)
 
 	checkGet(t, s, "k1", v3)
 	checkGet(t, s, "k2", v2)
+	checkGet(t, s, "k4", v4)
 
 	checkExist(t, s, "k1", true)
 	checkExist(t, s, "k3", false)
@@ -114,9 +120,13 @@ func TestAll(t *testing.T) {
 	checkBottom(t, s, 0, 0)
 
 	s.Delete("k1")
-	checkLength(t, s, 1)
-	checkRank(t, s, "k2", 1)
+	checkLength(t, s, 2)
+	checkRank(t, s, "k2", 2)
+	checkExist(t, s, "k2", true)
 	checkExist(t, s, "k1", false)
+
+	checkRank(t, s, "k1", 0)
+	checkGetDataByRank(t, s, 3, nil)
 
 	checkGet(t, s, "k1", nil)
 

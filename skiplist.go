@@ -1,6 +1,7 @@
 package skiplist
 
 import (
+	"fmt"
 	"math/rand"
 	"time"
 )
@@ -55,9 +56,9 @@ func (s *SkipList) Length() int {
 }
 
 // 根据Key设置数据
-func (s *SkipList) Set(key interface{}, data interface{}) bool {
-	if s.Delete(key) == false {
-		return false
+func (s *SkipList) Set(key interface{}, data interface{}) error {
+	if e := s.Delete(key); e != nil {
+		return e
 	}
 
 	var update [SKIPLIST_MAXLEVEL]*skipListNode
@@ -117,7 +118,7 @@ func (s *SkipList) Set(key interface{}, data interface{}) bool {
 		s.tail = node
 	}
 
-	return true
+	return nil
 }
 
 // 根据Key获取数据
@@ -130,12 +131,12 @@ func (s *SkipList) Get(key interface{}) interface{} {
 }
 
 // 根据Key删除数据
-func (s *SkipList) Delete(key interface{}) bool {
+func (s *SkipList) Delete(key interface{}) error {
 	if node := s.getNode(key); node != nil {
 		return s.deleteByNode(node)
 	}
 
-	return true
+	return nil
 }
 
 // 根据Key判断是否存在
@@ -266,7 +267,7 @@ func randomLevel() int {
 }
 
 // 根据数据删除节点
-func (s *SkipList) deleteByData(data interface{}) bool {
+func (s *SkipList) deleteByData(data interface{}) error {
 	var update = make([]*skipListNode, SKIPLIST_MAXLEVEL)
 	var node *skipListNode
 
@@ -281,16 +282,16 @@ func (s *SkipList) deleteByData(data interface{}) bool {
 	node = node.levels[0].forward
 	if data == node.data {
 		s.deleteNode(node, update)
-		return true
+		return nil
 	}
 
-	return false
+	return fmt.Errorf("deleteByData not found data : %v", data)
 }
 
 // 根据节点删除
-func (s *SkipList) deleteByNode(node *skipListNode) bool {
+func (s *SkipList) deleteByNode(node *skipListNode) error {
 	if node == nil {
-		return true
+		return nil
 	}
 
 	return s.deleteByData(node.data)
