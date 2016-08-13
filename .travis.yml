@@ -6,6 +6,6 @@ go:
   - 1.5
   - 1.6
 script:
-  - go test -v -coverprofile=profile.out
+  - go test -v -coverprofile=coverage.xml
 after_success:
   - bash <(curl -s https://codecov.io/bash)
