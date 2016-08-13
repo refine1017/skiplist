@@ -5,6 +5,7 @@ go:
   - 1.4
   - 1.5
   - 1.6
-
+script:
+  - phpunit -v --cover
 after_success:
   - bash <(curl -s https://codecov.io/bash)
