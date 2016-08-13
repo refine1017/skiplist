@@ -9,65 +9,40 @@ import (
 const SKIPLIST_MAXLEVEL = 32
 
 type SkipList struct {
-	header   *SkipListNode
-	tail     *SkipListNode
-	node_map map[interface{}]*SkipListNode
+	header   *skipListNode
+	tail     *skipListNode
+	node_map map[interface{}]*skipListNode
 	level    int
 	Less     func(interface{}, interface{}) bool
 }
 
-type SkipListLevel struct {
-	forward *SkipListNode
+type skipListLevel struct {
+	forward *skipListNode
 	span    int
 }
 
-type SkipListNode struct {
+type skipListNode struct {
 	key      interface{}
 	data     interface{}
-	backward *SkipListNode
-	levels   []SkipListLevel
+	backward *skipListNode
+	levels   []skipListLevel
 }
 
-func NewSkipListNode(level int, key interface{}, data interface{}) *SkipListNode {
-	sn := &SkipListNode{
-		key:    key,
-		data:   data,
-		levels: make([]SkipListLevel, level),
-	}
-	return sn
-}
+/**************************public**************************/
 
 func NewSkipList() *SkipList {
 	rand.Seed(time.Now().UnixNano())
 
 	sl := &SkipList{
 		level:    1,
-		node_map: make(map[interface{}]*SkipListNode),
-		header:   NewSkipListNode(SKIPLIST_MAXLEVEL, 0, 0),
+		node_map: make(map[interface{}]*skipListNode),
+		header:   newSkipListNode(SKIPLIST_MAXLEVEL, 0, 0),
 	}
 
 	sl.header.backward = nil
 	sl.tail = nil
 
 	return sl
-}
-
-func randomLevel() int {
-	var level int = 1
-	for {
-		if rand.Intn(2) == 1 {
-			level++
-
-			if level >= SKIPLIST_MAXLEVEL {
-				break
-			}
-
-		} else {
-			break
-		}
-	}
-
-	return level
 }
 
 func (s *SkipList) Level() int {
@@ -83,9 +58,9 @@ func (s *SkipList) Set(key interface{}, data interface{}) bool {
 		return false
 	}
 
-	var update [SKIPLIST_MAXLEVEL]*SkipListNode
+	var update [SKIPLIST_MAXLEVEL]*skipListNode
 	var rank [SKIPLIST_MAXLEVEL]int
-	var node *SkipListNode
+	var node *skipListNode
 
 	node = s.header
 
@@ -113,7 +88,7 @@ func (s *SkipList) Set(key interface{}, data interface{}) bool {
 		s.level = level
 	}
 
-	node = NewSkipListNode(level, key, data)
+	node = newSkipListNode(level, key, data)
 	s.node_map[key] = node
 
 	for i := 0; i < level; i++ {
@@ -168,7 +143,7 @@ func (s *SkipList) GetRank(key interface{}) int {
 }
 
 func (s *SkipList) GetRankByData(data interface{}) int {
-	var node *SkipListNode
+	var node *skipListNode
 	var rank int = 1
 
 	node = s.header
@@ -189,24 +164,6 @@ func (s *SkipList) GetRankByData(data interface{}) int {
 
 func (s *SkipList) Exist(key interface{}) bool {
 	return s.Get(key) != nil
-}
-
-func (s *SkipList) ExistsByNode(data interface{}) bool {
-	var node *SkipListNode
-
-	node = s.header
-	for i := s.level - 1; i >= 0; i-- {
-		for node.levels[i].forward != nil && s.Less(node.levels[i].forward.data, data) {
-			node = node.levels[i].forward
-		}
-	}
-
-	node = node.levels[0].forward
-	if node != nil && data == node.data {
-		return true
-	}
-
-	return false
 }
 
 func (s *SkipList) Top(number int) []interface{} {
@@ -242,7 +199,7 @@ func (s *SkipList) GetDataByRank(rank int) interface{} {
 		return nil
 	}
 
-	var node *SkipListNode
+	var node *skipListNode
 	var traversed int = 0
 
 	node = s.header
@@ -260,9 +217,45 @@ func (s *SkipList) GetDataByRank(rank int) interface{} {
 	return nil
 }
 
+func (s *SkipList) Clear() {
+	s.header = newSkipListNode(SKIPLIST_MAXLEVEL, 0, 0)
+	s.tail = nil
+	s.node_map = make(map[interface{}]*skipListNode)
+	s.level = 1
+}
+
+/**************************private**************************/
+
+func newSkipListNode(level int, key interface{}, data interface{}) *skipListNode {
+	sn := &skipListNode{
+		key:    key,
+		data:   data,
+		levels: make([]skipListLevel, level),
+	}
+	return sn
+}
+
+func randomLevel() int {
+	var level int = 1
+	for {
+		if rand.Intn(2) == 1 {
+			level++
+
+			if level >= SKIPLIST_MAXLEVEL {
+				break
+			}
+
+		} else {
+			break
+		}
+	}
+
+	return level
+}
+
 func (s *SkipList) deleteByData(data interface{}) bool {
-	var update = make([]*SkipListNode, SKIPLIST_MAXLEVEL)
-	var node *SkipListNode
+	var update = make([]*skipListNode, SKIPLIST_MAXLEVEL)
+	var node *skipListNode
 
 	node = s.header
 	for i := s.level - 1; i >= 0; i-- {
@@ -282,7 +275,7 @@ func (s *SkipList) deleteByData(data interface{}) bool {
 	return false
 }
 
-func (s *SkipList) deleteByNode(node *SkipListNode) bool {
+func (s *SkipList) deleteByNode(node *skipListNode) bool {
 	if node == nil {
 		return true
 	}
@@ -290,7 +283,7 @@ func (s *SkipList) deleteByNode(node *SkipListNode) bool {
 	return s.deleteByData(node.data)
 }
 
-func (s *SkipList) deleteNode(x *SkipListNode, update []*SkipListNode) {
+func (s *SkipList) deleteNode(x *skipListNode, update []*skipListNode) {
 	for i := 0; i < s.level; i++ {
 		if update[i].levels[i].forward == x {
 			update[i].levels[i].span += x.levels[i].span - 1
@@ -313,59 +306,52 @@ func (s *SkipList) deleteNode(x *SkipListNode, update []*SkipListNode) {
 	delete(s.node_map, x.key)
 }
 
-func (s *SkipList) getNode(key interface{}) *SkipListNode {
+func (s *SkipList) getNode(key interface{}) *skipListNode {
 	return s.node_map[key]
-}
-
-func (s *SkipList) Clear() {
-	s.header = NewSkipListNode(SKIPLIST_MAXLEVEL, 0, 0)
-	s.tail = nil
-	s.node_map = make(map[interface{}]*SkipListNode)
-	s.level = 1
 }
 
 /**************************Test**************************/
 
-func (s *SkipList) Print() {
-	var node *SkipListNode
-	for i := 0; i < SKIPLIST_MAXLEVEL; i++ {
-		node = s.header.levels[i].forward
-		if node == nil {
-			continue
-		}
-
-		fmt.Printf("LEVEL[#%v] : ", i)
-		for node != nil {
-			fmt.Printf("%v -> ", node.data)
-			node = node.levels[i].forward
-		}
-		fmt.Printf("NULL\n")
-	}
-}
-
-func (s *SkipList) Dump() {
-	node := s.header
-	for node != nil {
-		s.dumpNode(node)
-		node = node.levels[0].forward
-	}
-}
-
-func (s *SkipList) dumpNode(node *SkipListNode) {
-	fmt.Printf("Node: data = %v ", node.data)
-	backward := node.backward
-	if backward == nil {
-		fmt.Printf("backward = nil, levels = ")
-	} else {
-		fmt.Printf("backward = %v, levels = ", backward.data)
-	}
-	for i := 0; i < len(node.levels); i++ {
-		level := node.levels[i]
-		if level.forward == nil {
-			fmt.Printf(" nil ")
-		} else {
-			fmt.Printf(" [%v:%v] ", level.forward.data, level.span)
-		}
-	}
-	fmt.Printf("\n")
-}
+//func (s *SkipList) Print() {
+//	var node *skipListNode
+//	for i := 0; i < SKIPLIST_MAXLEVEL; i++ {
+//		node = s.header.levels[i].forward
+//		if node == nil {
+//			continue
+//		}
+//
+//		fmt.Printf("LEVEL[#%v] : ", i)
+//		for node != nil {
+//			fmt.Printf("%v -> ", node.data)
+//			node = node.levels[i].forward
+//		}
+//		fmt.Printf("NULL\n")
+//	}
+//}
+//
+//func (s *SkipList) Dump() {
+//	node := s.header
+//	for node != nil {
+//		s.dumpNode(node)
+//		node = node.levels[0].forward
+//	}
+//}
+//
+//func (s *SkipList) dumpNode(node *skipListNode) {
+//	fmt.Printf("Node: data = %v ", node.data)
+//	backward := node.backward
+//	if backward == nil {
+//		fmt.Printf("backward = nil, levels = ")
+//	} else {
+//		fmt.Printf("backward = %v, levels = ", backward.data)
+//	}
+//	for i := 0; i < len(node.levels); i++ {
+//		level := node.levels[i]
+//		if level.forward == nil {
+//			fmt.Printf(" nil ")
+//		} else {
+//			fmt.Printf(" [%v:%v] ", level.forward.data, level.span)
+//		}
+//	}
+//	fmt.Printf("\n")
+//}
